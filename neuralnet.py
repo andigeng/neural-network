@@ -75,8 +75,8 @@ class NeuralNet:
 			np.random.shuffle( dataset )
 			
 			for sample in dataset:
-				self.forward_pass(sample.predictors)
-				self.backprop(sample.target)
+				self.forward_pass( sample.predictors )
+				self.backprop( sample.target )
 			
 			print("Epoch {} -- Training Set Accuracy: {}".format(
 					epoch + 1,
@@ -90,20 +90,18 @@ class NeuralNet:
 		"""
 
 		# Adds a vector composed of ones onto input -- acts as bias node
-		self.outputs[0] = np.append([1], inputs)
-
+		self.outputs[0] = np.concatenate( (np.ones(1), inputs) )
 
 		for layer in range(1, self.num_layers):
 			# Calculates each successive layers' inputs -- the dot product of all the
 			# incoming values and weights, which then go through sigmoid function
-			#transposed_weights = np.transpose( self.weights[layer-1] )
 			transposed_weights = np.transpose( self.weights[ layer-1 ] )
 			self.inputs[layer] = np.dot( self.outputs[layer-1], transposed_weights )
 			temp_output = self.sigmoid_activation( self.inputs[layer] )
 
 			# If we are not on the last layer, include a calculation for the bias node
 			if ( layer < self.num_layers - 1 ):
-				self.outputs[layer] = np.append([1], temp_output)
+				self.outputs[layer] = np.concatenate( (np.ones(1), temp_output) )
 			else:
 				self.outputs[layer] = temp_output
 	
@@ -122,12 +120,12 @@ class NeuralNet:
 			forward_pass_input = self.sigmoid_deriv( self.inputs[i] )
 			error_dot_connections = np.dot( self.errors[i+1], self.weights[i][:,1:] )
 			self.errors[i]  = forward_pass_input * error_dot_connections
-
+		
 		for i in range( 0, self.num_layers-1 ):
 			# The gradient is the dot product of the errors flowing backwards with the
 			# values of the node it is connected to
-			transposed_errors = np.transpose( np.matrix( self.errors[i+1] ) )
-			gradient = np.dot( transposed_errors, np.matrix(self.outputs[i]) )
+			transposed_errors = np.transpose( np.array( [self.errors[i+1]] ) )
+			gradient = np.dot( transposed_errors, np.array([self.outputs[i]]) )
 			self.weights[i] -= self.learning_rate * gradient
 
 
@@ -175,16 +173,14 @@ def main():
 	test_data = rd.to_object(test_data)
 
 	net = NeuralNet( [64, 90, 10], 0.25, -0.3, 0.3)
+
 	net.train_network(training_data, 5)
 
 	print('\nFinal Testing Accuracy')
 	print(net.test_accuracy(test_data))
 
-
 	print('\nFinal Training Accuracy:')
 	print(net.test_accuracy(training_data))
-
-	
 
 
 if __name__ == "__main__":
